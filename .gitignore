@@ -18,3 +18,4 @@ datum_gateway
 build*/
 dist/
 /config.json
+!config.example.json
