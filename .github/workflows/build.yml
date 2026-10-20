@@ -24,7 +24,7 @@ jobs:
               libcurl4-openssl-dev libjansson-dev libsodium-dev libmicrohttpd-dev
             git config --global --add safe.directory /src
             cmake -S . -B build-deb -DCMAKE_C_FLAGS="-Wall -Werror"
-            cmake --build build-deb --parallel
+            cmake --build build-deb --parallel || { diff doc/example_datum_gateway_config.json build-deb/CMakeFiles/generated_example_datum_gateway_config.json; exit 1; }
             ./build-deb/datum_gateway --help >/dev/null
             ./build-deb/datum_gateway --test'
 
