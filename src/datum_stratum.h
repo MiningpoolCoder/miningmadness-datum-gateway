@@ -176,6 +176,8 @@ typedef struct T_DATUM_STRATUM_JOB {
 	int job_state;
 	
 	bool need_coinbaser;
+	bool direct_coinbase_can_pay_all;
+	atomic_bool direct_coinbase_complete;
 	
 	bool is_datum_job;
 	unsigned char datum_job_idx;

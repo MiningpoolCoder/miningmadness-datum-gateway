@@ -334,6 +334,9 @@ void generate_coinbase_txns_for_stratum_job_subtypebysize(T_DATUM_STRATUM_JOB *s
 		}
 	}
 	
+	if (coinbase_index == 4) {
+		s->direct_coinbase_can_pay_all = (mval == s->coinbase_value);
+	}
 	// this should never happen, but...
 	if (mval > s->coinbase_value) {
 		DLOG_ERROR("Attempting to pay more than we have available in the generation txn! --- %"PRIu64" sats available, %"PRIu64" sats to miners", s->coinbase_value, mval);
@@ -911,9 +914,16 @@ void *datum_coinbaser_thread(void *ptr) {
 				s->available_coinbase_outputs_count = 0;
 				i = 0;
 			}
-			if (i>=0) {
+			if (i>=0 && (!datum_protocol_direct_payouts() || i>0)) {
 				DLOG_DEBUG("Generating coinbases for up to %d outputs", i);
+				s->direct_coinbase_can_pay_all = false;
 				generate_coinbase_txns_for_stratum_job(s, false);
+				if (datum_protocol_direct_payouts() && !s->direct_coinbase_can_pay_all) {
+					DLOG_ERROR("Direct coinbase cannot include every payout; retaining previous work");
+					usleep(1000000);
+					continue;
+				}
+				atomic_store(&s->direct_coinbase_complete, true);
 				if (__builtin_expect(atomic_load_explicit(&need_coinbaser_rwlocks_init_done, memory_order_acquire), 1)) {
 					pthread_rwlock_wrlock(&need_coinbaser_rwlocks[sjob]);
 					s->need_coinbaser = false;

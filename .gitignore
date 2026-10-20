@@ -14,3 +14,7 @@ datum_gateway
 *.orig
 *.rej
 *~
+
+build*/
+dist/
+/config.json

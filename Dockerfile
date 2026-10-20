@@ -44,7 +44,7 @@ WORKDIR /app
 # Copy only the built binary and necessary files from builder
 COPY --from=builder /build/datum_gateway /app/
 COPY --from=builder /build/www/ /app/www/
-COPY --from=builder /build/doc/example_datum_gateway_config.json /app/config/config.json
+COPY --from=builder /build/config.example.json /app/config/config.json
 
 # Create a configuration directory if it doesn't exist
 RUN mkdir -p /app/config

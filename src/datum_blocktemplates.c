@@ -59,6 +59,7 @@
 volatile sig_atomic_t new_notify = 0;
 atomic_int new_notify_threadsafe = 0;
 atomic_int notify_othercause = 0;
+static atomic_int notify_payouts = 0;
 static pthread_mutex_t new_notify_lock = PTHREAD_MUTEX_INITIALIZER;
 volatile char new_notify_blockhash[256] = { 0 };
 volatile int new_notify_height = 0;
@@ -83,6 +84,11 @@ void datum_blocktemplates_notifynew(const char * const prevhash, const int heigh
 
 void datum_blocktemplates_notify_othercause() {
 	notify_othercause = 1;
+}
+
+void datum_blocktemplates_notifypayouts(void) {
+	atomic_store(&notify_payouts, 1);
+	datum_blocktemplates_notifynew(NULL, 0);
 }
 
 bool datum_blocktemplates_abw_ready(T_DATUM_TEMPLATE_DATA *block_template,
@@ -513,9 +519,13 @@ void *datum_gateway_template_thread(void *args) {
 					
 					// If the previous block hash changed, or work is no longer valid, we should push clean work
 					const bool new_block = strcmp(t->previousblockhash, p1);
-					if (new_block || notify_othercause) {
+					if (!new_block && atomic_exchange(&notify_payouts, 0)) {
+						update_stratum_job(t, false, JOB_STATE_FULL_PRIORITY_WAIT_COINBASER);
+					} else if (new_block || notify_othercause) {
 						notify_othercause = 0;
-						update_stratum_job(t,true,JOB_STATE_EMPTY_PLUS);
+						atomic_store(&notify_payouts, 0);
+						if (!datum_protocol_direct_payouts())
+							update_stratum_job(t,true,JOB_STATE_EMPTY_PLUS);
 						if (new_block) {
 							last_block_change = current_time_millis();
 							strcpy(p1, t->previousblockhash);
@@ -531,7 +541,7 @@ void *datum_gateway_template_thread(void *args) {
 						
 						// wait for the empties to complete
 						DLOG_DEBUG("Waiting on empty work send completion...");
-						for(j=0;j<4000;j++) {
+						for(j=0;!datum_protocol_direct_payouts() && j<4000;j++) {
 							if (stratum_latest_empty_check_ready_for_full()) break;
 							usleep(1001);
 						}

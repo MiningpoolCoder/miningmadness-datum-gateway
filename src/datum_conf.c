@@ -125,7 +125,7 @@ const T_DATUM_CONFIG_ITEM datum_config_options[] = {
 		.required = false, .ptr = datum_config.mining_coinbase_tag_primary,				.default_string[0] = "DATUM Gateway", .max_string_len = sizeof(datum_config.mining_coinbase_tag_primary) },
 	{ .var_type = DATUM_CONF_STRING, 	.category = "mining", 		.name = "coinbase_tag_secondary",	.description = "Text to have in the secondary coinbase tag (Short name/identifier)",
 		.example_default = true,
-		.required = false, .ptr = datum_config.mining_coinbase_tag_secondary,			.default_string[0] = "DATUM User", .max_string_len = sizeof(datum_config.mining_coinbase_tag_secondary) },
+		.required = false, .ptr = datum_config.mining_coinbase_tag_secondary,			.default_string[0] = "MiningMadness", .max_string_len = sizeof(datum_config.mining_coinbase_tag_secondary) },
 	{ .var_type = DATUM_CONF_INT, 		.category = "mining", 		.name = "coinbase_unique_id",		.description = "A unique ID between 1 and 65535. This is appended to the coinbase. Make unique per instance of datum with the same coinbase tags.",
 		.required = false, .ptr = &datum_config.coinbase_unique_id, 		.default_int = 4242 },
 	{ .var_type = DATUM_CONF_STRING, 	.category = "mining", 		.name = "save_submitblocks_dir",	.description = "Directory to save all submitted blocks to as submitblock JSON files",
@@ -181,11 +181,11 @@ const T_DATUM_CONFIG_ITEM datum_config_options[] = {
 	
 	// datum options
 	{ .var_type = DATUM_CONF_STRING, 	.category = "datum", 		.name = "pool_host",					.description = "Remote DATUM server host/ip to use for decentralized pooled mining (set to \"\" to disable pooled mining)",
-		.required = false, .ptr = datum_config.datum_pool_host,			.default_string[0] = "datum-beta1.mine.convoy.xyz", .max_string_len = sizeof(datum_config.datum_pool_host) },
+		.required = false, .ptr = datum_config.datum_pool_host,			.default_string[0] = "miningmadness.com", .max_string_len = sizeof(datum_config.datum_pool_host) },
 	{ .var_type = DATUM_CONF_INT, 		.category = "datum",		.name = "pool_port",					.description = "Remote DATUM server port",
-		.required = false, .ptr = &datum_config.datum_pool_port, .default_int = 28915 },
+		.required = false, .ptr = &datum_config.datum_pool_port, .default_int = 4483 },
 	{ .var_type = DATUM_CONF_STRING, 	.category = "datum", 		.name = "pool_pubkey",					.description = "Public key of the DATUM server for initiating encrypted connection. Get from secure location, or set to empty to auto-fetch.",
-		.required = false, .ptr = datum_config.datum_pool_pubkey,		.default_string[0] = "dbb11fa0c2b5403e4f798fa6071bb97e6079d219598366032fdf2ae01962b13c5e66e2be7d6b008f0b2603f3e6f6fc64768fa786c8129c46d3e30a5867734b62", .max_string_len = sizeof(datum_config.datum_pool_pubkey) },
+		.required = false, .ptr = datum_config.datum_pool_pubkey,		.default_string[0] = "6536bde2aeee35ecb868830a3bae85c087aae9b2abf963592694d800ccf929a1da16d421dd1a9a49f3f88a8ba87db4a9aa6dcb464d3adbcc3adc3825afc50455", .max_string_len = sizeof(datum_config.datum_pool_pubkey) },
 	{ .var_type = DATUM_CONF_INT, 		.category = "datum", 		.name = "migration_max_seconds",		.description = "Maximum time to remain away from the configured DATUM server after a server-requested migration (0 disables migration)",
 		.example_default = true,
 		.required = false, .ptr = &datum_config.datum_pool_migration_max_seconds, .default_int = 86400 },

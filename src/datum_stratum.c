@@ -1430,6 +1430,8 @@ int client_mining_authorize(T_DATUM_CLIENT_DATA *c, uint64_t id, json_t *params_
 unsigned int datum_stratum_coinbase_index(
 	const T_DATUM_STRATUM_THREADPOOL_DATA *sdata,
 	const T_DATUM_MINER_DATA *miner, bool new_block) {
+	// Sia miners hash a synthetic coinb1, so hardware coinbase-size limits do not apply.
+	if (datum_protocol_direct_payouts()) return 4;
 	if (new_block) return DATUM_COINBASE_ID_EMPTY;
 	if (!sdata || !miner || !sdata->cur_stratum_job ||
 	    sdata->cur_stratum_job->job_state < JOB_STATE_FULL_PRIORITY_WAIT_COINBASER ||
@@ -1457,6 +1459,13 @@ int send_mining_notify(T_DATUM_CLIENT_DATA *c, bool clean, bool quickdiff, bool 
 	
 	if (!j) {
 		return -1;
+	}
+	if (datum_protocol_direct_payouts()) {
+		if (!datum_protocol_is_active() ||
+		    !atomic_load(&j->direct_coinbase_complete)) return -1;
+		// Use the complete payout coinbase, never the subsidy-only fallback.
+		new_block = false;
+		clean = true;
 	}
 	
 	//job_id - ID of the job. Use this ID while submitting share generated from this job.
@@ -2025,6 +2034,8 @@ void update_stratum_job(T_DATUM_TEMPLATE_DATA *block_template, bool new_block, i
 	
 	// start as not a datum job.  if we have coinbase data and such for it down the line, this will get updated.
 	s->is_datum_job = false;
+	atomic_store(&s->direct_coinbase_complete, false);
+	s->direct_coinbase_can_pay_all = false;
 	
 	// prep the coinbase txn(s) for this job
 	generate_base_coinbase_txns_for_stratum_job(s, s->is_new_block);

@@ -1445,6 +1445,12 @@ int datum_protocol_ping_response(T_DATUM_PROTOCOL_HEADER *h, unsigned char *data
 	return 1;
 }
 
+static atomic_bool datum_direct_payouts = false;
+
+bool datum_protocol_direct_payouts(void) {
+	return atomic_load(&datum_direct_payouts);
+}
+
 int datum_protocol_client_configure(int len, unsigned char *data) {
 	// Server->Client configuration changes.  This can be called at any time by the server
 	// to make updates to these important variables.
@@ -1521,6 +1527,8 @@ err:
 	}
 	const bool pool_abw_enabled =
 		!(config_flags & DATUM_CONFIG_FLAG_ABW_DISABLED);
+	atomic_store(&datum_direct_payouts,
+		i + 6 <= len && !memcmp(data + i + 2, "MMD\x01", 4));
 	const bool abw_policy_changed = pool_abw_enabled !=
 		atomic_load(&datum_pool_abw_enabled);
 	if (first_configuration && !resumed) datum_protocol_clear_validation_context();
@@ -2301,6 +2309,11 @@ int datum_protocol_mining_cmd5(T_DATUM_PROTOCOL_HEADER *h, unsigned char *data) 
 			break;
 		}
 		
+		case 0xF8: {
+			// Rebuild the payout split even when the parent block is unchanged.
+			datum_blocktemplates_notifypayouts();
+			return 1;
+		}
 		case 0xF9: {
 			// Server says we should check for a new block template immediately
 			DLOG_DEBUG("DATUM server blocknotify");

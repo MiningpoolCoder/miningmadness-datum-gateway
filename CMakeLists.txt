@@ -14,6 +14,7 @@ else()
 endif()
 
 option(ENABLE_API "Build API support." ON)
+option(STATIC_BUILD "Link a fully static executable (release binaries)." OFF)
 
 include(GNUInstallDirs)
 
@@ -169,6 +170,19 @@ target_link_directories(datum_gateway
 	${JANSSON_LIBRARY_DIRS}
 	${SODIUM_LIBRARY_DIRS}
 )
+if(STATIC_BUILD)
+	target_link_options(datum_gateway PRIVATE -static)
+	target_link_libraries(datum_gateway
+		PUBLIC
+		${POW_LIBS}
+		Threads::Threads
+		${ARGP_LIBS}
+		${EPOLL_SHIM_LIBRARIES}
+		${CURL_STATIC_LDFLAGS} ${CURL_STATIC_LDFLAGS_OTHER}
+		${JANSSON_STATIC_LDFLAGS} ${JANSSON_STATIC_LDFLAGS_OTHER}
+		${SODIUM_STATIC_LDFLAGS} ${SODIUM_STATIC_LDFLAGS_OTHER}
+	)
+else()
 target_link_libraries(datum_gateway
 	PUBLIC
 	${POW_LIBS}
@@ -179,6 +193,7 @@ target_link_libraries(datum_gateway
 	${JANSSON_LIBRARIES} ${JANSSON_LDFLAGS} ${JANSSON_LDFLAGS_OTHER}
 	${SODIUM_LIBRARIES} ${SODIUM_LDFLAGS} ${SODIUM_LDFLAGS_OTHER}
 )
+endif()
 target_compile_options(datum_gateway
 	PUBLIC
 	${CURL_CFLAGS} ${CURL_CFLAGS_OTHER}
@@ -190,7 +205,11 @@ if(ENABLE_API)
 	target_sources(datum_gateway PRIVATE src/datum_api.c)
 	target_include_directories(datum_gateway PRIVATE ${MICROHTTPD_INCLUDE_DIRS})
 	target_link_directories(datum_gateway PUBLIC ${MICROHTTPD_LIBRARY_DIRS})
-	target_link_libraries(datum_gateway PUBLIC ${MICROHTTPD_LIBRARIES} ${MICROHTTPD_LDFLAGS} ${MICROHTTPD_LDFLAGS_OTHER})
+	if(STATIC_BUILD)
+		target_link_libraries(datum_gateway PUBLIC ${MICROHTTPD_STATIC_LDFLAGS} ${MICROHTTPD_STATIC_LDFLAGS_OTHER})
+	else()
+		target_link_libraries(datum_gateway PUBLIC ${MICROHTTPD_LIBRARIES} ${MICROHTTPD_LDFLAGS} ${MICROHTTPD_LDFLAGS_OTHER})
+	endif()
 	target_compile_options(datum_gateway PUBLIC
 		-DENABLE_API
 		${MICROHTTPD_CFLAGS} ${MICROHTTPD_CFLAGS_OTHER}

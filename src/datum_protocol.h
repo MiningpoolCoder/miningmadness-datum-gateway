@@ -53,7 +53,7 @@
 #define DATUM_ABW_ASSIGNMENT_SLOTS 16
 #define DATUM_ABW_ASSIGNMENT_ACTIVE 0x01
 
-#define DATUM_PROTOCOL_VERSION "v0.5.0-beta" // this is sent to the server as a UA
+#define DATUM_PROTOCOL_VERSION "v0.5.0-beta-mm-direct1" // MiningMadness direct-payout extension
 #define DATUM_PROTOCOL_CONNECT_TIMEOUT 30
 
 #define DATUM_PROTOCOL_MAX_CMD_DATA_SIZE 4194304 // 2^22 - protocol limit!
@@ -144,6 +144,7 @@ typedef struct {
 int datum_protocol_init(void);
 int datum_encrypt_generate_keys(DATUM_ENC_KEYS *keys);
 bool datum_protocol_is_active(void);
+bool datum_protocol_direct_payouts(void);
 bool datum_protocol_abw_required(void);
 void datum_increment_session_nonce(void *s);
 int datum_protocol_fetch_coinbaser(uint64_t value);
